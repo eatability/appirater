@@ -85,6 +85,11 @@ extern NSString *const kAppiraterReminderRequestDate;
  */
 #define APPIRATER_RATE_LATER			NSLocalizedStringFromTableInBundle(@"Remind me later", @"AppiraterLocalizable", [Appirater bundle], nil)
 
+/*!
+ Text for button to send feedback by the user.
+ */
+#define APPIRATER_SEND_FEEDBACK			NSLocalizedStringFromTableInBundle(@"Send Feedback", @"AppiraterLocalizable", [Appirater bundle], nil)
+
 @interface Appirater : NSObject <UIAlertViewDelegate, SKStoreProductViewControllerDelegate> {
 
 	UIAlertView		*ratingAlert;
@@ -290,5 +295,13 @@ extern NSString *const kAppiraterReminderRequestDate;
  Calls [Appirater tryToShowPrompt]. See tryToShowPrompt for details of functionality.
  */
 + (void)showPrompt __attribute__((deprecated));
+
+
+
+
+
++ (Appirater*)sharedInstance;
+
+- (void)showRatingAlert;
 
 @end

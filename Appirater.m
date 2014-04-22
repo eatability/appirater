@@ -36,6 +36,8 @@
 
 #import "Appirater.h"
 #import <SystemConfiguration/SCNetworkReachability.h>
+#import "EATFeedbackViewController.h"
+#import <MessageUI/MessageUI.h>
 #include <netinet/in.h>
 
 #if ! __has_feature(objc_arc)
@@ -69,7 +71,10 @@ static UIStatusBarStyle _statusBarStyle;
 static BOOL _modalOpen = false;
 static BOOL _alwaysUseMainBundle = NO;
 
-@interface Appirater ()
+@interface Appirater () <MFMailComposeViewControllerDelegate>
+{
+    MFMailComposeViewController *mailer;
+}
 - (BOOL)connectedToNetwork;
 + (Appirater*)sharedInstance;
 - (void)showPromptWithChecks:(BOOL)withChecks
@@ -214,7 +219,7 @@ static BOOL _alwaysUseMainBundle = NO;
                                            message:APPIRATER_MESSAGE
                                           delegate:self
                                  cancelButtonTitle:APPIRATER_CANCEL_BUTTON
-                                 otherButtonTitles:APPIRATER_RATE_BUTTON, APPIRATER_RATE_LATER, nil];
+                                 otherButtonTitles:APPIRATER_RATE_BUTTON, APPIRATER_SEND_FEEDBACK, nil];
   } else {
   	alertView = [[UIAlertView alloc] initWithTitle:APPIRATER_MESSAGE_TITLE
                                            message:APPIRATER_MESSAGE
@@ -583,12 +588,15 @@ static BOOL _alwaysUseMainBundle = NO;
 			break;
 		}
 		case 2:
-			// remind them later
-			[userDefaults setDouble:[[NSDate date] timeIntervalSince1970] forKey:kAppiraterReminderRequestDate];
-			[userDefaults synchronize];
-			if(delegate && [delegate respondsToSelector:@selector(appiraterDidOptToRemindLater:)]){
-				[delegate appiraterDidOptToRemindLater:self];
-			}
+//			// remind them later
+//			[userDefaults setDouble:[[NSDate date] timeIntervalSince1970] forKey:kAppiraterReminderRequestDate];
+//			[userDefaults synchronize];
+//			if(delegate && [delegate respondsToSelector:@selector(appiraterDidOptToRemindLater:)]){
+//				[delegate appiraterDidOptToRemindLater:self];
+//			}
+            
+            // send feedback
+            [self openMailComposer];
 			break;
 		default:
 			break;
@@ -618,6 +626,78 @@ static BOOL _alwaysUseMainBundle = NO;
 		}];
 		[self.class setStatusBarStyle:(UIStatusBarStyle)nil];
 	}
+}
+
+
+
+
+
+- (void)openMailComposer
+{
+//    if ([MFMailComposeViewController canSendMail]) {
+//        mailer = [MFMailComposeViewController new];
+//        mailer.mailComposeDelegate = self;
+//        [mailer setSubject:@""];
+//        [[mailer navigationBar] setTintColor:[UIColor colorWithRed:133.0f/255.0f green:0.0f/255.0f blue:118.0f/255.0f alpha:1]];
+//        NSArray *toRecipients = [NSArray arrayWithObjects:EATABILITY_MAIL_RECIPIENT, nil];
+//        [mailer setToRecipients:toRecipients];
+//        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:mailer animated:YES completion:nil];
+//    }
+//    else {
+        EATFeedbackViewController *feedbackVC = [[EATFeedbackViewController alloc] initWithNibName:@"EATFeedbackViewController" bundle:nil];
+        UINavigationController *navFeedbackVC = [[UINavigationController alloc] initWithRootViewController:feedbackVC];
+        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:navFeedbackVC animated:YES completion:nil];
+//    }
+}
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
+{
+    switch (result)
+    {
+        case MFMailComposeResultCancelled:
+            NSLog(@"Mail cancelled: you cancelled the operation and no email message was queued.");
+            break;
+        case MFMailComposeResultSaved:
+            NSLog(@"Mail saved: you saved the email message in the drafts folder.");
+            break;
+        case MFMailComposeResultSent:
+            NSLog(@"Mail send: the email message is queued in the outbox. It is ready to send.");
+            break;
+        case MFMailComposeResultFailed:
+            NSLog(@"Mail failed: the email message was not saved or queued, possibly due to an error.");
+            break;
+        default:
+            NSLog(@"Mail not sent.");
+            break;
+    }
+    // Remove the mail view
+    [mailer dismissViewControllerAnimated:YES completion:nil];
+}
+
+// Returns true if the ToAddress field was found any of the sub views and made first responder
+// passing in @"MFComposeSubjectView"     as the value for field makes the subject become first responder
+// passing in @"MFComposeTextContentView" as the value for field makes the body become first responder
+// passing in @"RecipientTextField"       as the value for field makes the to address field become first responder
+- (BOOL)setMFMailFieldAsFirstResponder:(UIView *)view mfMailField:(NSString *)field
+{
+    for (UIView *subview in view.subviews) {
+        NSString *className = [NSString stringWithFormat:@"%@", [subview class]];
+        if ([className isEqualToString:field]) {
+            //Found the sub view we need to set as first responder
+            [subview becomeFirstResponder];
+            return YES;
+        }
+        
+        if ([subview.subviews count] > 0) {
+            if ([self setMFMailFieldAsFirstResponder:subview mfMailField:field]) {
+                //Field was found and made first responder in a subview
+                return YES;
+            }
+        }
+    }
+    
+    //field not found in this view.
+    return NO;
 }
 
 @end
