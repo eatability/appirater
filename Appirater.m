@@ -634,20 +634,20 @@ static BOOL _alwaysUseMainBundle = NO;
 
 - (void)openMailComposer
 {
-//    if ([MFMailComposeViewController canSendMail]) {
-//        mailer = [MFMailComposeViewController new];
-//        mailer.mailComposeDelegate = self;
-//        [mailer setSubject:@""];
-//        [[mailer navigationBar] setTintColor:[UIColor colorWithRed:133.0f/255.0f green:0.0f/255.0f blue:118.0f/255.0f alpha:1]];
-//        NSArray *toRecipients = [NSArray arrayWithObjects:EATABILITY_MAIL_RECIPIENT, nil];
-//        [mailer setToRecipients:toRecipients];
-//        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:mailer animated:YES completion:nil];
-//    }
-//    else {
+    if ([MFMailComposeViewController canSendMail]) {
+        mailer = [MFMailComposeViewController new];
+        mailer.mailComposeDelegate = self;
+        [mailer setSubject:EATABILITY_MAIL_SUBJECT];
+        [[mailer navigationBar] setTintColor:[UIColor colorWithRed:133.0f/255.0f green:0.0f/255.0f blue:118.0f/255.0f alpha:1]];
+        NSArray *toRecipients = [NSArray arrayWithObjects:EATABILITY_MAIL_RECIPIENT, nil];
+        [mailer setToRecipients:toRecipients];
+        [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:mailer animated:YES completion:nil];
+    }
+    else {
         EATFeedbackViewController *feedbackVC = [[EATFeedbackViewController alloc] initWithNibName:@"EATFeedbackViewController" bundle:nil];
         UINavigationController *navFeedbackVC = [[UINavigationController alloc] initWithRootViewController:feedbackVC];
         [[[[[UIApplication sharedApplication] delegate] window] rootViewController] presentViewController:navFeedbackVC animated:YES completion:nil];
-//    }
+    }
 }
 
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
